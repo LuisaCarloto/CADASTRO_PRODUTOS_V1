@@ -19,6 +19,10 @@ class Produto {
 //
 const listaDeProdutos = [];
 
+// 🆕 Variável para controlar se estamos cadastrando ou editando
+// null = cadastrar produto / número = editar produto
+let indiceEdicao = null;
+
 //
 // 🆕 FASE 2.1: Persistência com localStorage
 //
@@ -59,25 +63,48 @@ const totalEstoqueEl = document.getElementById("total-estoque");
 
 //
 // FASE 4: Escuta de Eventos
-//
+//  Adicionar ou Editar Produto pelo Formulário
 
-// 1. Adicionar Produto pelo Formulário
-formProduto.addEventListener("submit", function (event) {
+    formProduto.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    const nomeInput = document.getElementById("nome").value;
-    const precoInput = document.getElementById("preco").value;
-    const quantidadeInput = document.getElementById("quantidade").value;
+    //  Remove espaços desnecessários do nome
+    const nomeInput = document.getElementById("nome").value.trim();
+    const precoInput = parseFloat(document.getElementById("preco").value);
+    const quantidadeInput = parseInt(document.getElementById("quantidade").value);
+
+    //  Validação do nome
+    if (!nomeInput) {
+        alert("Por favor, informe um nome válido para o produto.");
+        return;
+    }
+
+    //  Validação do preço e da quantidade
+    if (isNaN(precoInput) || precoInput <= 0 || isNaN(quantidadeInput) || quantidadeInput <= 0) {
+        alert("O preço e a quantidade devem ser valores numéricos maiores que zero.");
+        return;
+    }
 
     const novoProduto = new Produto(nomeInput, precoInput, quantidadeInput);
 
-    listaDeProdutos.push(novoProduto);
+    //  Verifica se estamos cadastrando ou editando
+    if (indiceEdicao === null) {
+        // Adiciona um produto novo
+        listaDeProdutos.push(novoProduto);
+    } else {
+        // Substitui o produto que está sendo editado
+        listaDeProdutos[indiceEdicao] = novoProduto;
+    }
 
-    // 🆕 Salva no localStorage sempre que um novo produto for adicionado
+    //  Salva no localStorage após adicionar ou editar
     salvarNoLocalStorage();
 
     atualizarInterface();
     formProduto.reset();
+
+    // Volta para o modo de cadastro
+    indiceEdicao = null;
+    document.querySelector(".btn-primary").textContent = "Adicionar Produto";
 });
 
 // 2. Limpar toda a tabela
@@ -90,10 +117,15 @@ btnLimparTudo.addEventListener("click", function () {
     if (confirm("Tem certeza que deseja remover todos os produtos?")) {
         listaDeProdutos.length = 0;
 
-        // 🆕 Remove a chave inteira do localStorage
+        //  Remove a chave inteira do localStorage
         localStorage.removeItem(CHAVE_STORAGE);
 
         atualizarInterface();
+
+        //  Cancela a edição caso a tabela seja limpa
+        indiceEdicao = null;
+        formProduto.reset();
+        document.querySelector(".btn-primary").textContent = "Adicionar Produto";
     }
 });
 
@@ -105,10 +137,31 @@ btnLimparTudo.addEventListener("click", function () {
 function removerProduto(index) {
     listaDeProdutos.splice(index, 1);
 
-    // 🆕 Salva a nova lista (sem o item removido) no localStorage
+    // Salva a nova lista (sem o item removido) no localStorage
     salvarNoLocalStorage();
 
     atualizarInterface();
+
+    // Cancela a edição para evitar alterar o produto errado
+    indiceEdicao = null;
+    formProduto.reset();
+    document.querySelector(".btn-primary").textContent = "Adicionar Produto";
+}
+
+//  Função responsável por preparar um produto para edição
+function prepararEdicao(index) {
+    const produto = listaDeProdutos[index];
+
+    // Preenche os campos com os dados do produto escolhido
+    document.getElementById("nome").value = produto.nome;
+    document.getElementById("preco").value = produto.preco;
+    document.getElementById("quantidade").value = produto.quantidade;
+
+    // Guarda o índice do produto que será editado
+    indiceEdicao = index;
+
+    // Altera o texto do botão
+    document.querySelector(".btn-primary").textContent = "Salvar Alterações";
 }
 
 // Função responsável por calcular e renderizar o total geral em estoque
@@ -135,9 +188,14 @@ function renderizarTabela() {
             <td>${produto.quantidade}</td>
             <td>R$ ${produto.calcularSubtotal().toFixed(2)}</td>
             <td>
+                <button class="btn-editar">Editar</button>
                 <button class="btn-remover">Remover</button>
             </td>
         `;
+
+        //  Botão para editar o produto
+        const btnEditar = linha.querySelector(".btn-editar");
+        btnEditar.addEventListener("click", () => prepararEdicao(index));
 
         const btnRemover = linha.querySelector(".btn-remover");
         btnRemover.addEventListener("click", () => removerProduto(index));
@@ -153,7 +211,7 @@ function atualizarInterface() {
 }
 
 //
-// 🆕 FASE 6: Inicialização da Aplicação
+//  FASE 6: Inicialização da Aplicação
 //
 // Ao carregar o script pela primeira vez, restaura os dados do localStorage
 // e atualiza a interface gráfica.
