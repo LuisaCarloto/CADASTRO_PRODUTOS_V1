@@ -15,38 +15,30 @@ class Produto {
 }
 
 //
-// FASE 2: Gerenciamento de Estado (Memória)
+// FASE 2: Gerenciamento de Estado (Memória e Edição)
 //
 const listaDeProdutos = [];
 
-// 🆕 Variável para controlar se estamos cadastrando ou editando
-// null = cadastrar produto / número = editar produto
+// Estado auxiliar: null indica "Modo Inclusão", número indica "Modo Edição"
 let indiceEdicao = null;
 
-//
-// 🆕 FASE 2.1: Persistência com localStorage
-//
-// Definimos uma constante para evitar erros de digitação ao usar a chave do localStorage
+// Chave para persistência no navegador
 const CHAVE_STORAGE = "sistema_estoque_produtos";
 
-// 1. Função para SALVAR os dados no navegador
+//
+// FASE 2.1: Persistência com localStorage
+//
 function salvarNoLocalStorage() {
-    // JSON.stringify converte o Array de Objetos JS em uma String JSON
     const listaEmTexto = JSON.stringify(listaDeProdutos);
     localStorage.setItem(CHAVE_STORAGE, listaEmTexto);
 }
 
-// 2. Função para CARREGAR os dados salvos quando a página abrir
 function carregarDoLocalStorage() {
     const dadosSalvos = localStorage.getItem(CHAVE_STORAGE);
 
-    // Se existirem dados salvos anteriormente no navegador...
     if (dadosSalvos) {
-        // Converte a string JSON de volta para um Array de objetos genéricos
         const produtosObjetos = JSON.parse(dadosSalvos);
 
-        // ATENÇÃO (Conceito POO): Reinstanciamos cada produto com "new Produto()"
-        // para garantir que os objetos recuperem o método .calcularSubtotal()
         produtosObjetos.forEach((prod) => {
             const produtoInstanciado = new Produto(prod.nome, prod.preco, prod.quantidade);
             listaDeProdutos.push(produtoInstanciado);
@@ -58,56 +50,97 @@ function carregarDoLocalStorage() {
 // FASE 3: Captura de Elementos do DOM
 //
 const formProduto = document.getElementById("produto-form");
+const btnSubmit = formProduto.querySelector("button[type='submit']");
 const btnLimparTudo = document.getElementById("limpar-tabela");
 const totalEstoqueEl = document.getElementById("total-estoque");
 
-//
-// FASE 4: Escuta de Eventos
-//  Adicionar ou Editar Produto pelo Formulário
+//NOVIDADE V4: CAPTURA DO NOVO ELEMENTO INPUT DE BUSCA
+const campoBusca = document.getElementById("campo-busca");
 
-    formProduto.addEventListener("submit", function (event) {
+
+//
+// FASE 4: Função para Transferir Estado para Modo Edição
+//
+function prepararEdicao(index) {
+    const produto = listaDeProdutos[index];
+
+    // 1. Preenche os campos do formulário com os dados do registro selecionado
+    document.getElementById("nome").value = produto.nome;
+    document.getElementById("preco").value = produto.preco;
+    document.getElementById("quantidade").value = produto.quantidade;
+
+    // 2. Atualiza a variável global de controle e altera o texto do botão
+    indiceEdicao = index;
+    btnSubmit.textContent = "Salvar Alterações";
+    btnSubmit.classList.add("btn-warning");
+}
+//NOVIDADE V4 CRIAÇÃO DE UMA FUNÇÃO INTELIGENTE DE FILTRAGEM .FILTER
+//a função analisa oq foi digitado e retorna apenas os produtos que correspondem ao filtro.
+function obterProdutosFiltrados(){
+    //sanitizar o termo de busca e converter para minusculo .trim e toLowerCase
+    const termo = campoBusca.value.trim().toLowerCase();
+    //se a busca estiver vazia, retrona a lista principal
+    if(!termo){
+        return listaDeProdutos;
+    }
+
+    //usa  método de alta performace . filter
+ return listaDeProdutos.filter(produto =>
+    produto.nome.toLowerCase().includes(termo)
+ );
+}
+
+
+
+//
+// FASE 5: Escuta de Eventos
+//
+
+// 1. Evento Submit do Formulário com Validações (Guard Clauses) e Fluxo Update
+formProduto.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    //  Remove espaços desnecessários do nome
-    const nomeInput = document.getElementById("nome").value.trim();
-    const precoInput = parseFloat(document.getElementById("preco").value);
-    const quantidadeInput = parseInt(document.getElementById("quantidade").value);
+    // Sanitização e Captura dos Valores
+    const nome = document.getElementById("nome").value.trim();
+    const preco = parseFloat(document.getElementById("preco").value);
+    const quantidade = parseInt(document.getElementById("quantidade").value);
 
-    //  Validação do nome
-    if (!nomeInput) {
+    // Guard Clause 1: Validação do nome
+    if (!nome) {
         alert("Por favor, informe um nome válido para o produto.");
         return;
     }
 
-    //  Validação do preço e da quantidade
-    if (isNaN(precoInput) || precoInput <= 0 || isNaN(quantidadeInput) || quantidadeInput <= 0) {
+    // Guard Clause 2: Checagem de Limites Numéricos
+    if (isNaN(preco) || preco <= 0 || isNaN(quantidade) || quantidade <= 0) {
         alert("O preço e a quantidade devem ser valores numéricos maiores que zero.");
         return;
     }
 
-    const novoProduto = new Produto(nomeInput, precoInput, quantidadeInput);
+    // Instancia o novo produto com dados validados
+    const produtoValido = new Produto(nome, preco, quantidade);
 
-    //  Verifica se estamos cadastrando ou editando
+    // Lógica de Persistência em Memória: Inclusão vs. Alteração (Update)
     if (indiceEdicao === null) {
-        // Adiciona um produto novo
-        listaDeProdutos.push(novoProduto);
+        // Modo Inclusão
+        listaDeProdutos.push(produtoValido);
     } else {
-        // Substitui o produto que está sendo editado
-        listaDeProdutos[indiceEdicao] = novoProduto;
+        // Modo Edição (Update)
+        listaDeProdutos[indiceEdicao] = produtoValido;
+        
+        // Restaura o estado original de cadastro
+        indiceEdicao = null;
+        btnSubmit.textContent = "Adicionar Produto";
+        btnSubmit.classList.remove("btn-warning");
     }
 
-    //  Salva no localStorage após adicionar ou editar
+    // Sincroniza com localStorage, limpa o formulário e atualiza a interface
     salvarNoLocalStorage();
-
-    atualizarInterface();
     formProduto.reset();
-
-    // Volta para o modo de cadastro
-    indiceEdicao = null;
-    document.querySelector(".btn-primary").textContent = "Adicionar Produto";
+    atualizarInterface();
 });
 
-// 2. Limpar toda a tabela
+// 2. Limpar Toda a Tabela
 btnLimparTudo.addEventListener("click", function () {
     if (listaDeProdutos.length === 0) {
         alert("A tabela já está vazia!");
@@ -116,55 +149,36 @@ btnLimparTudo.addEventListener("click", function () {
 
     if (confirm("Tem certeza que deseja remover todos os produtos?")) {
         listaDeProdutos.length = 0;
-
-        //  Remove a chave inteira do localStorage
         localStorage.removeItem(CHAVE_STORAGE);
-
-        atualizarInterface();
-
-        //  Cancela a edição caso a tabela seja limpa
+        
+        // Restaura estado se estivesse editando
         indiceEdicao = null;
+        btnSubmit.textContent = "Adicionar Produto";
+        btnSubmit.classList.remove("btn-warning");
+
         formProduto.reset();
-        document.querySelector(".btn-primary").textContent = "Adicionar Produto";
+        atualizarInterface();
     }
 });
 
 //
-// FASE 5: Funções de Atualização e Renderização da Interface
+// FASE 6: Funções de Atualização e Renderização da Interface
 //
-
-// Função responsável por remover um único produto pelo índice
 function removerProduto(index) {
     listaDeProdutos.splice(index, 1);
 
-    // Salva a nova lista (sem o item removido) no localStorage
+    // Caso o item excluído seja o que estava em edição, reseta o estado
+    if (indiceEdicao === index) {
+        indiceEdicao = null;
+        btnSubmit.textContent = "Adicionar Produto";
+        btnSubmit.classList.remove("btn-warning");
+        formProduto.reset();
+    }
+
     salvarNoLocalStorage();
-
     atualizarInterface();
-
-    // Cancela a edição para evitar alterar o produto errado
-    indiceEdicao = null;
-    formProduto.reset();
-    document.querySelector(".btn-primary").textContent = "Adicionar Produto";
 }
 
-//  Função responsável por preparar um produto para edição
-function prepararEdicao(index) {
-    const produto = listaDeProdutos[index];
-
-    // Preenche os campos com os dados do produto escolhido
-    document.getElementById("nome").value = produto.nome;
-    document.getElementById("preco").value = produto.preco;
-    document.getElementById("quantidade").value = produto.quantidade;
-
-    // Guarda o índice do produto que será editado
-    indiceEdicao = index;
-
-    // Altera o texto do botão
-    document.querySelector(".btn-primary").textContent = "Salvar Alterações";
-}
-
-// Função responsável por calcular e renderizar o total geral em estoque
 function atualizarTotalEstoque() {
     const total = listaDeProdutos.reduce((acc, produto) => {
         return acc + produto.calcularSubtotal();
@@ -173,10 +187,8 @@ function atualizarTotalEstoque() {
     totalEstoqueEl.textContent = `Total em Estoque: R$ ${total.toFixed(2)}`;
 }
 
-// Função responsável por re-desenhar a tabela
 function renderizarTabela() {
     const tabelaBody = document.querySelector("#tabela-produtos tbody");
-
     tabelaBody.innerHTML = "";
 
     listaDeProdutos.forEach((produto, index) => {
@@ -193,7 +205,7 @@ function renderizarTabela() {
             </td>
         `;
 
-        //  Botão para editar o produto
+        // Eventos dos botões da coluna de ações
         const btnEditar = linha.querySelector(".btn-editar");
         btnEditar.addEventListener("click", () => prepararEdicao(index));
 
@@ -204,16 +216,13 @@ function renderizarTabela() {
     });
 }
 
-// Função principal que sincroniza a tela com os dados
 function atualizarInterface() {
     renderizarTabela();
     atualizarTotalEstoque();
 }
 
 //
-//  FASE 6: Inicialização da Aplicação
+// FASE 7: Inicialização da Aplicação
 //
-// Ao carregar o script pela primeira vez, restaura os dados do localStorage
-// e atualiza a interface gráfica.
 carregarDoLocalStorage();
 atualizarInterface();

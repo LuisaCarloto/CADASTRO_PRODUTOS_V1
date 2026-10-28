@@ -1,35 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Estoque - POO</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Estoque - POO & CRUD</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
     <div class="container">
-        <h1>Cadastro de Produto</h1>
+        <h1>Cadastro de Produtos</h1>
 
         <!-- Formulário de Entrada -->
         <form id="produto-form">
             <div class="form-group">
-                <label for="nome">Nome do Produto:</label>
-                <input type="text" id="nome" placeholder="Ex: Notebook" required />
+                <label for="nome">Nome do produto:</label>
+                <input type="text" id="nome" placeholder="Ex. Notebook" />
             </div>
 
             <div class="form-group">
                 <label for="preco">Preço (R$):</label>
-                <input type="number" id="preco" step="0.01" placeholder="Ex: 3500.00" required />
+                <input type="number" id="preco" step="0.01" placeholder="Ex. 3500.00" />
             </div>
 
             <div class="form-group">
                 <label for="quantidade">Quantidade:</label>
-                <input type="number" id="quantidade" placeholder="Ex: 5" required />
+                <input type="number" id="quantidade" placeholder="Ex. 5" />
             </div>
 
             <button type="submit" class="btn-primary">Adicionar Produto</button>
         </form>
+
+        <!--ALTERAÇÃO DA VERSÃO 4-->
+        <div class="busca-container">
+            <label for="campo-busca"> Pesquisa no Estoque</label>
+            <input type="text" id="campo-busca" placeholder="Digite o nomde do protudo para filtrar...">
+        </div>
 
         <!-- Cabeçalho de Ações e Resumo -->
         <div class="resumo-container">
@@ -37,7 +42,7 @@
             <button id="limpar-tabela" class="btn-danger">Limpar Tudo</button>
         </div>
 
-        <!-- Tabela de Produtos -->
+        <!-- Tabela de Exibição -->
         <table id="tabela-produtos">
             <thead>
                 <tr>
@@ -49,7 +54,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- As linhas serão inseridas aqui pelo JavaScript -->
+                <!-- As linhas da tabela serão inseridas pelo JS -->
             </tbody>
         </table>
     </div>

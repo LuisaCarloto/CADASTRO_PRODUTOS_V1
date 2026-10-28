@@ -1,4 +1,3 @@
-/* Reset básico */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -7,18 +6,18 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #f4f6f9;
     color: #333;
     padding: 20px;
 }
 
 .container {
     max-width: 650px;
-    background-color: #ffffff;
+    background-color: #fff;
     margin: 30px auto;
-    padding: 20px;
+    padding: 25px;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 h1 {
@@ -27,7 +26,6 @@ h1 {
     color: #1e293b;
 }
 
-/* Formulário */
 form {
     display: flex;
     flex-direction: column;
@@ -39,6 +37,32 @@ form {
     display: flex;
     flex-direction: column;
     gap: 5px;
+}
+.busca-container{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: #f8fafc;
+    border: 1px solid #efe8f0;
+    border-radius: 6px;
+}
+.busca-container label {
+    font-weight: bold;
+    font-size: 13px;
+    color: #2563eb;
+}
+.busca-container input{
+    padding: 9px;
+    border: 1 px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.busca-container input:focus{
+    outline: none;
+    border-color: #2563eb;
+
 }
 
 label {
@@ -58,7 +82,6 @@ input:focus {
     border-color: #2563eb;
 }
 
-/* Botões */
 button {
     padding: 10px 15px;
     font-size: 15px;
@@ -78,6 +101,15 @@ button {
     background-color: #1d4ed8;
 }
 
+.btn-warning {
+    background-color: #d97706 !important;
+    color: white !important;
+}
+
+.btn-warning:hover {
+    background-color: #b45309 !important;
+}
+
 .btn-danger {
     background-color: #dc2626;
     color: white;
@@ -87,13 +119,12 @@ button {
     background-color: #b91c1c;
 }
 
-/* Resumo / Painel */
 .resumo-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    padding-top: 15px;
+    padding-top: 10px;
     border-top: 2px solid #e2e8f0;
 }
 
@@ -102,16 +133,14 @@ button {
     color: #0f172a;
 }
 
-/* Tabela */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
-th,
-td {
-    border: 1px solid #e2e8f0;
+th, td {
+    border: 1px solid #cbd5e1;
     padding: 10px;
     text-align: center;
 }
@@ -125,12 +154,25 @@ tbody tr:nth-child(even) {
     background-color: #f8fafc;
 }
 
-/* Botão de remoção individual dentro da tabela */
+.btn-editar {
+    background-color: #f59e0b;
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 3px;
+    margin-right: 4px;
+}
+
+.btn-editar:hover {
+    background-color: #d97706;
+}
+
 .btn-remover {
     background-color: #ef4444;
     color: white;
-    padding: 7px 10px;
+    padding: 5px 10px;
     font-size: 12px;
+    border-radius: 3px;
 }
 
 .btn-remover:hover {
